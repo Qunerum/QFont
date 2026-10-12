@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include "qfont.h"
 
 static const qFont _qFont = {
@@ -34,9 +35,38 @@ static void* mc(void* dest, const void* src, const uint32_t n) {
 	return dest;
 }
 
-qFont qfCreate(const uint8_t sizeX, const uint8_t sizeY, const uint32_t capacity) { return (qFont){
-	.sizeX = sizeX,
-	.sizeY = sizeY,
-	.charCount = capacity,
-	.chars = 0
-};}
+qFont* qfCreate(const uint8_t sizeX, const uint8_t sizeY, const uint32_t capacity) {
+	qFont* font = malloc(sizeof(qFont));
+	font->sizeX = sizeX;
+	font->sizeY = sizeY;
+	font->capacity = capacity;
+	font->charCount = 0;
+	font->chars = 0;
+	return font;
+}
+void qfAddChar(qFont* font, int8_t* data) {
+	if (!font || !data || font->charCount == 0 || font->capacity == 0 || font->charCount >= font->capacity) return;
+
+}
+static qFont* qfMain = 0;
+#define qfac_ qfAddChar(qfMain,(int8_t[]){
+void qfInit() {
+	qfMain = qfCreate(8, 12, 128);
+	// a b c d e f g h i j k l m n o p q r s t u v w x y z - 26
+	// A B C D E F G H I J K L M N O P Q R S T U V W X Y Z - 26
+	// ` 1 2 3 4 5 6 7 8 9 0 - =                           - 13
+	// ~ ! @ # $ % ^ & * ( ) _ +                           - 13
+	// [ ] \   { } |                                       - 6
+	// ; '     : "                                         - 4
+	// , . /   < > ?                                       - 6
+	qfac_'!',2,8,
+		2, 3,-2,
+		2, 3,-2,
+		2, 3,-2,
+		2, 3,-2,
+		2, 3,-2,
+		0,
+		2, 3,-2,
+		2, 3,-2
+	});
+}

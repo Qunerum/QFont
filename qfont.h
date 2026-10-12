@@ -13,8 +13,10 @@
 
 typedef struct {
 	uint8_t sizeX, sizeY;
-	uint32_t charCount;
-	int8_t* chars; // code, ...
+	uint32_t capacity, charCount;
+	int8_t* chars; // code, skip Y, lines...
+	// line:
+	// count, ...
 } qFont;
 
 #endif
