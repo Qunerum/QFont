@@ -2,8 +2,11 @@
 #define QGPU_SHAPES
 #include "../lib/qgpu.h"
 
+#include "../lib/qfont.h"
+
 void init() {
 	qgSetBackground(CLR_RGB(0.05f, 0.05f, 0.08f));
+	qfInit();
 }
 static uint btn = 0;
 void drawBtn(const int hw, const int hh) {
