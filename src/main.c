@@ -26,9 +26,12 @@ void update() {
 	drawBtn(hw,hh);
 
 	qfDrawText(-hw + 10, 0,
-		"\x1F!\"#$%&'()*+,-./0123456789:;<=>?@\n"
+		"\x1F!\"#$%&'()*+,-./\n"
+		"0123456789:;<=>?@\n"
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n"
-		"[\\]^_` abcdefghijklmnopqrstuvwxyz {|}~\n");
+		"[\\]^_`\n"
+		"abcdefghijklmnopqrstuvwxyz\n"
+		"{|}~");
 }
 
 int main() { return qgpuCreate(680, 720, "QFont Maker", init, update); }

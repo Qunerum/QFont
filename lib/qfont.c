@@ -4,8 +4,8 @@
 #include "qfont.h"
 
 static float
-	pivX = 0, pivY = 0,
-	qfSize = 32,
+	pivX = 0.0f, pivY = 0.0f,
+	qfSize = 32.0f,
 	qfR = 1.0f, qfG = 1.0f, qfB = 1.0f, qfA = 1.0f;
 static uint8_t qfStyle = QFONT_REGULAR;
 static void (*drawFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a);
@@ -22,15 +22,13 @@ void qfConfigure(const float fontSize, const uint8_t style, const float r, const
 	qfB = b;
 	qfA = a;
 }
-
 static void* mc(void* dest, const void* src, const uint32_t n) {
 	unsigned char* d = (unsigned char*)dest;
 	const unsigned char* s = (const unsigned char*)src;
 	for (uint32_t i = 0; i < n; i++) d[i] = s[i];
 	return dest;
 }
-
-qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY) { return (qfCharData) { .sizeX = sizeX, .sizeY = sizeY, }; }
+qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY) { return (qfCharData) { .sizeX = sizeX, .sizeY = sizeY }; }
 static int8_t** allChars = 0;
 static uint32_t highestID = 0;
 #define u8d (uint8_t)d
@@ -61,9 +59,7 @@ void qfAddChar(const qfCharData charData, const int8_t* d) {
 	mc(allChars[id], d + 2, size);
 	allChars[id][0] = charData.sizeX;
 	allChars[id][1] = charData.sizeY;
-	printf(
-	"[QFont] Added char: WH:[%ux%u] ID:[0x%X] LS:[%uB]\n",
-	charData.sizeX, charData.sizeY, id, size);
+	printf("[QFont] Added char [%c]: WH:[%ux%u] ID:[0x%X] LS:[%uB]\n", id > 31 && id < 127 ? id : '?', charData.sizeX, charData.sizeY, id, size);
 }
 float qfDrawChar(const float posX, const float posY, const uint32_t c) {
 	if (c >= highestID || !allChars[c]) return .0f;
@@ -107,7 +103,7 @@ void qfDrawText(const float posX, const float posY, const char* t) {
 #define qfl qfFont,(int8_t[]){0,0,0
 void qfInit() {
 	qfCharData qfFont = qfCreate(8, 12);
-	qfAddChar(qfl,0x1F, 0,12, // full
+	qfAddChar(qfl,0x1f, 0,12, // full
 		1, -8,
 		1, -8,
 		1, -8,
@@ -121,6 +117,7 @@ void qfInit() {
 		1, -8,
 		1, -8
 	});
+	qfAddChar(qfl,0x20, 0,0}); // space
 	qfAddChar(qfl,0x21, 2,8, // !
 		2, 3,-2,
 		2, 3,-2,
@@ -159,17 +156,134 @@ void qfInit() {
 		2, 3,-2
 	});
 	qfAddChar(qfl,0x25, 2,8, // %
-		4, 1,-2,3,-1,
 		4, 1,-2,2,-1,
+		4, 1,-2,2,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 3,-1,
+		2, 3,-1,
+		4, 2,-1,2,-2,
+		4, 2,-1,2,-2
+	});
+	qfAddChar(qfl,0x26, 2,8, // &
+		2, 2,-3,
+		4, 1,-1,3,-1,
+		2, 1,-1,
+		2, 2,-1,
+		4, 1,-1,1,-1,
+		6, 1,-1,2,-1,1,-1,
+		4, 1,-1,3,-1,
+		4, 2,-3,1,-1
+	});
+	qfAddChar(qfl,0x27, 2,3, // '
+		2, 3,-2,
+		2, 3,-2,
+		2, 3,-1
+	});
+	qfAddChar(qfl,0x28, 2,8, // (
+		2, 5,-1,
+		2, 4,-1,
+		2, 3,-1,
+		2, 3,-1,
+		2, 3,-1,
+		2, 3,-1,
+		2, 4,-1,
+		2, 5,-1
+	});
+	qfAddChar(qfl,0x29, 2,8, // )
+		2, 2,-1,
+		2, 3,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 3,-1,
+		2, 2,-1
+	});
+	qfAddChar(qfl,0x2a, 2,3, // *
+		4, 2,-1,2,-1,
+		2, 3,-2,
+		4, 2,-1,2,-1
+	});
+	qfAddChar(qfl,0x2b, 3,5, // +
+		2, 3,-1,
+		2, 3,-1,
+		2, 1,-5,
+		2, 3,-1,
+		2, 3,-1,
+	});
+	qfAddChar(qfl,0x2c, 8,3, // ,
+		2, 3,-2,
+		2, 3,-2,
+		2, 2,-2
+	});
+	qfAddChar(qfl,0x2d, 5,1,  2, 1,-5 }); // -
+	qfAddChar(qfl,0x2e, 8,2, // .
+		2, 3,-2,
+		2, 3,-2
+	});
+	qfAddChar(qfl,0x2f, 2,8, // /
+		2, 5,-1,
+		2, 5,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 3,-1,
+		2, 3,-1,
+		2, 2,-1,
+		2, 2,-1
+	});
+	qfAddChar(qfl,0x30, 2,8, // 0
+		2, 2,-4,
+		4, 1,-1,4,-1,
+		4, 1,-2,3,-1,
+		6, 1,-1,1,-1,2,-1,
+		6, 1,-1,2,-1,1,-1,
+		4, 1,-1,3,-2,
+		4, 1,-1,4,-1,
+		2, 2,-4
+	});
+	qfAddChar(qfl,0x31, 2,8, // 1
+		2, 4,-1,
+		2, 3,-2,
+		4, 2,-1,1,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 4,-1,
+		2, 2,-5
+	});
+	qfAddChar(qfl,0x32, 2,8, // 2
+		2, 2,-4,
+		4, 1,-1,4,-1,
+		2, 6,-1,
 		2, 5,-1,
 		2, 4,-1,
 		2, 3,-1,
 		2, 2,-1,
-		4, 2,-1,2,-2,
-		4, 1,-1,3,-2
+		2, 1,-6
+	});
+	qfAddChar(qfl,0x33, 2,8, // 3
+		2, 2,-4,
+		4, 1,-1,4,-1,
+		2, 6,-1,
+		2, 3,-3,
+		2, 6,-1,
+		2, 6,-1,
+		4, 1,-1,4,-1,
+		2, 2,-4
+	});
+	qfAddChar(qfl,0x34, 2,8, // 4
+		2, 4,-2,
+		4, 3,-1,1,-1,
+		4, 2,-1,2,-1,
+		4, 1,-1,3,-1,
+		2, 1,-6,
+		2, 5,-1,
+		2, 5,-1,
+		2, 5,-1
 	});
 	/*
-	qfAddChar(qfl,0x26, 2,8, // &
+	qfAddChar(qfl,0x35, 2,8, // 5
 		0,
 		0,
 		0,
@@ -179,7 +293,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x27, 2,8, // '
+	qfAddChar(qfl,0x36, 2,8, // 6
 		0,
 		0,
 		0,
@@ -189,7 +303,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x28, 2,8, // (
+	qfAddChar(qfl,0x37, 2,8, // 7
 		0,
 		0,
 		0,
@@ -199,7 +313,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x29, 2,8, // )
+	qfAddChar(qfl,0x38, 2,8, // 8
 		0,
 		0,
 		0,
@@ -209,7 +323,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x2a, 2,8, // *
+	qfAddChar(qfl,0x39, 2,8, // 9
 		0,
 		0,
 		0,
@@ -219,7 +333,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x2b, 2,8, // +
+	qfAddChar(qfl,0x3a, 2,8, // :
 		0,
 		0,
 		0,
@@ -229,7 +343,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x2c, 2,8, // ,
+	qfAddChar(qfl,0x3b, 2,8, // ;
 		0,
 		0,
 		0,
@@ -239,7 +353,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x2d, 2,8, // -
+	qfAddChar(qfl,0x3c, 2,8, // <
 		0,
 		0,
 		0,
@@ -249,7 +363,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x2e, 2,8, // .
+	qfAddChar(qfl,0x3d, 2,8, // =
 		0,
 		0,
 		0,
@@ -259,7 +373,37 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl,0x2f, 2,8, // /
+	qfAddChar(qfl,0x3e, 2,8, // >
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
+	});
+	qfAddChar(qfl,0x3f, 2,8, // ?
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
+	});
+	qfAddChar(qfl,0x40, 2,8, // @
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
+	});
+	qfAddChar(qfl,0x41, 2,8, // A
 		0,
 		0,
 		0,
