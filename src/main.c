@@ -9,7 +9,7 @@ void init() {
 	qgSetBackground(CLR_RGB(0.05f, 0.05f, 0.08f));
 	qfSetDrawRect(0,0, draw);
 	qfInit();
-	qfConfigure(64, QFONT_REGULAR, 1, 1, 1, 1);
+	qfConfigure(48, QFONT_REGULAR, 1, 1, 1, 1);
 }
 static uint btn = 0;
 void drawBtn(const int hw, const int hh) {
@@ -25,7 +25,10 @@ void update() {
 	qgSetLayerUI(1);
 	drawBtn(hw,hh);
 
-	qfDrawText(-200, 0, "!\"#$\x1F!!\x1F");
+	qfDrawText(-hw + 10, 0,
+		"\x1F!\"#$%&'()*+,-./0123456789:;<=>?@\n"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n"
+		"[\\]^_` abcdefghijklmnopqrstuvwxyz {|}~\n");
 }
 
 int main() { return qgpuCreate(680, 720, "QFont Maker", init, update); }

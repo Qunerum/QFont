@@ -62,10 +62,7 @@ void qfAddChar(const qfCharData charData, const int8_t* d) {
 	allChars[id][0] = charData.sizeX;
 	allChars[id][1] = charData.sizeY;
 	printf(
-	"[QFont] Adding char:\n"
-	"|- WH: %ux%u\n"
-	"|- ID: 0x%X\n"
-	"\\_ LS: %uB\n",
+	"[QFont] Added char: WH:[%ux%u] ID:[0x%X] LS:[%uB]\n",
 	charData.sizeX, charData.sizeY, id, size);
 }
 float qfDrawChar(const float posX, const float posY, const uint32_t c) {
@@ -95,16 +92,24 @@ float qfDrawChar(const float posX, const float posY, const uint32_t c) {
 	}
 	return w * sc;
 }
-void qfDrawText(const float posX, const float posY, const char* text) {
+void qfDrawText(const float posX, const float posY, const char* t) {
 	float x = posX, y = posY;
-	while (*text) x += qfDrawChar(x, y, *text++);
+	while (*t) {
+		if (*t == '\n') {
+			x = posX;
+			y -= qfSize;
+			t++;
+			continue;
+		}
+		x += qfDrawChar(x, y, *t++);
+	}
 }
 #define qfl qfFont,(int8_t[]){0,0,0
 void qfInit() {
 	qfCharData qfFont = qfCreate(8, 12);
 	qfAddChar(qfl,0x1F, 0,12, // full
-		2, -4, -4,
-		2, -2, -6,
+		1, -8,
+		1, -8,
 		1, -8,
 		1, -8,
 		1, -8,
@@ -126,9 +131,10 @@ void qfInit() {
 		2, 3,-2,
 		2, 3,-2
 	});
-	qfAddChar(qfl,0x22, 2,2, // "
+	qfAddChar(qfl,0x22, 2,3, // "
 		4, 1,-2,2,-2,
-		4, 1,-2,2,-2
+		4, 1,-2,2,-2,
+		4, 1,-1,3,-1
 	});
 	qfAddChar(qfl,0x23, 2,8, // #
 		4, 2,-1,2,-1,
@@ -140,27 +146,29 @@ void qfInit() {
 		4, 2,-1,2,-1,
 		4, 2,-1,2,-1
 	});
-	/*
-	qfAddChar(qfl,0x24, 2,8, // $
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0
+	qfAddChar(qfl,0x24, 1,10, // $
+		2, 3,-2,
+		2, 2,-4,
+		4, 1,-1,4,-1,
+		2, 1,-1,
+		2, 2,-2,
+		2, 4,-2,
+		2, 6,-1,
+		4, 1,-1,4,-1,
+		2, 2,-4,
+		2, 3,-2
 	});
 	qfAddChar(qfl,0x25, 2,8, // %
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0
+		4, 1,-2,3,-1,
+		4, 1,-2,2,-1,
+		2, 5,-1,
+		2, 4,-1,
+		2, 3,-1,
+		2, 2,-1,
+		4, 2,-1,2,-2,
+		4, 1,-1,3,-2
 	});
+	/*
 	qfAddChar(qfl,0x26, 2,8, // &
 		0,
 		0,
@@ -262,4 +270,14 @@ void qfInit() {
 		0
 	});
 	*/
+	qfAddChar(qfl,0x53, 2,8, // S
+		2, 2,-4,
+		4, 1,-1,4,-1,
+		2, 1,-1,
+		2, 2,-2,
+		2, 4,-2,
+		2, 6,-1,
+		4, 1,-1,4,-1,
+		2, 2,-4
+	});
 }
