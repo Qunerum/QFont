@@ -4,13 +4,14 @@
 #include "qfont.h"
 
 static float
-	pivX = 0.0f, pivY = 0.0f,
+	pivX = 0, pivY = 0,
 	qfSize = 32,
 	qfR = 1.0f, qfG = 1.0f, qfB = 1.0f, qfA = 1.0f;
 static uint8_t qfStyle = QFONT_REGULAR;
 static void (*drawFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a);
-void qfSetDrawRect(const float pivotX, const float pivotY, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a)) {
-	pivX = pivotX; pivY = pivotY;
+void qfSetDrawRect(const int8_t px, const int8_t py, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a)) {
+	pivX = px <= -1 ? 0.0f : px >= 1 ? 1.0f : 0.5f;
+	pivY = py <= -1 ? 0.0f : py >= 1 ? 1.0f : 0.5f;
 	drawFunc = drawRectFunc;
 }
 void qfConfigure(const float fontSize, const uint8_t style, const float r, const float g, const float b, const float a) {
@@ -32,13 +33,14 @@ static void* mc(void* dest, const void* src, const uint32_t n) {
 qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY) { return (qfCharData) { .sizeX = sizeX, .sizeY = sizeY, }; }
 static int8_t** allChars = 0;
 static uint32_t highestID = 0;
+#define u8d (uint8_t)d
 void qfAddChar(const qfCharData charData, const int8_t* d) {
 	if (!d) return;
 	const uint32_t id =
-		((uint32_t)(uint8_t)d[0] << 24) |
-		((uint32_t)(uint8_t)d[1] << 16) |
-		((uint32_t)(uint8_t)d[2] << 8)  |
-		 (uint32_t)(uint8_t)d[3];
+		((uint32_t)u8d[0] << 24) |
+		((uint32_t)u8d[1] << 16) |
+		((uint32_t)u8d[2] << 8)  |
+		 (uint32_t)u8d[3];
 	if (id >= highestID) {
 		const uint32_t newCapacity = id + 1;
 		int8_t** temp = (int8_t**)realloc(allChars, newCapacity * sizeof(int8_t*));
@@ -48,10 +50,10 @@ void qfAddChar(const qfCharData charData, const int8_t* d) {
 		highestID = newCapacity;
 	}
 	if (allChars[id]) free(allChars[id]);
-	const uint8_t goNext = (uint8_t)d[5];
+	const uint8_t goNext = u8d[5];
 	uint16_t size = 4, actualID = 6;
 	for (uint8_t i = 0; i < goNext; i++) {
-		const uint8_t len = 1 + (uint8_t)d[actualID];
+		const uint8_t len = 1 + u8d[actualID];
 		actualID += len;
 		size += len;
 	}
@@ -61,16 +63,60 @@ void qfAddChar(const qfCharData charData, const int8_t* d) {
 	allChars[id][1] = charData.sizeY;
 	printf(
 	"[QFont] Adding char:\n"
-	"|    ID: 0x%X\n"
-	"\\_ Size: %u\n",
-	id, size);
-	// for (int i = 0; i < size - 1; i++) printf("%i, ", allChars[id][i]);
-	// printf("%i\n", allChars[id][size - 1]);
+	"|- WH: %ux%u\n"
+	"|- ID: 0x%X\n"
+	"\\_ LS: %uB\n",
+	charData.sizeX, charData.sizeY, id, size);
 }
-#define qfl qfFont,(int8_t[])
+float qfDrawChar(const float posX, const float posY, const uint32_t c) {
+	if (c >= highestID || !allChars[c]) return .0f;
+	const int8_t* d = allChars[c];
+	const uint8_t
+		w = u8d[0], h = u8d[1],
+		s = u8d[2], rn = u8d[3],
+		n = s + rn > h ? h - s : rn;
+	if (s >= h) return .0f;
+	uint8_t x = 0, y = s, i = 4;
+	const float sc = qfSize / h;
+	for (uint8_t r = 0; r < n; r++) {
+		const uint8_t len = u8d[i] + 1;
+		for (uint8_t l = 1; l < len; l++) {
+			const int8_t dil = d[i + l];
+			const uint8_t
+				draw = dil < 0,
+				rv = draw ? -dil : dil,
+				v = rv > w ? w : rv;
+			if (draw) drawFunc(posX + (x + v * pivX) * sc, posY - (y + pivY) * sc, v * sc, sc, qfR,qfG,qfB,qfA);
+			x += v;
+		}
+		i += len;
+		x = 0;
+		y++;
+	}
+	return w * sc;
+}
+void qfDrawText(const float posX, const float posY, const char* text) {
+	float x = posX, y = posY;
+	while (*text) x += qfDrawChar(x, y, *text++);
+}
+#define qfl qfFont,(int8_t[]){0,0,0
 void qfInit() {
 	qfCharData qfFont = qfCreate(8, 12);
-	qfAddChar(qfl{0,0,0,0x21, 2,8, // !
+	qfAddChar(qfl,0x1F, 0,12, // full
+		2, -4, -4,
+		2, -2, -6,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8,
+		1, -8
+	});
+	qfAddChar(qfl,0x21, 2,8, // !
 		2, 3,-2,
 		2, 3,-2,
 		2, 3,-2,
@@ -80,11 +126,11 @@ void qfInit() {
 		2, 3,-2,
 		2, 3,-2
 	});
-	qfAddChar(qfl{0,0,0,0x22, 2,2, // "
+	qfAddChar(qfl,0x22, 2,2, // "
 		4, 1,-2,2,-2,
 		4, 1,-2,2,-2
 	});
-	qfAddChar(qfl{0,0,0,0x23, 2,8, // #
+	qfAddChar(qfl,0x23, 2,8, // #
 		4, 2,-1,2,-1,
 		4, 2,-1,2,-1,
 		2, 1,-6,
@@ -94,18 +140,8 @@ void qfInit() {
 		4, 2,-1,2,-1,
 		4, 2,-1,2,-1
 	});
-	qfAddChar(qfl{0,0,0,0x24, 2,8, // $
-		2, 3,-2,
-		2, 2,-5,
-		2, 1,-2,
-		2, 2,-4,
-		2, 5,-2,
-		2, 1,-5,
-		2, 3,-2,
-		0
-	});
 	/*
-	qfAddChar(qfl{0,0,0,0x25, 2,8, // %
+	qfAddChar(qfl,0x24, 2,8, // $
 		0,
 		0,
 		0,
@@ -115,7 +151,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x26, 2,8, // &
+	qfAddChar(qfl,0x25, 2,8, // %
 		0,
 		0,
 		0,
@@ -125,7 +161,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x27, 2,8, // '
+	qfAddChar(qfl,0x26, 2,8, // &
 		0,
 		0,
 		0,
@@ -135,7 +171,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x28, 2,8, // (
+	qfAddChar(qfl,0x27, 2,8, // '
 		0,
 		0,
 		0,
@@ -145,7 +181,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x29, 2,8, // )
+	qfAddChar(qfl,0x28, 2,8, // (
 		0,
 		0,
 		0,
@@ -155,7 +191,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x2a, 2,8, // *
+	qfAddChar(qfl,0x29, 2,8, // )
 		0,
 		0,
 		0,
@@ -165,7 +201,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x2b, 2,8, // +
+	qfAddChar(qfl,0x2a, 2,8, // *
 		0,
 		0,
 		0,
@@ -175,7 +211,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x2c, 2,8, // ,
+	qfAddChar(qfl,0x2b, 2,8, // +
 		0,
 		0,
 		0,
@@ -185,7 +221,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x2d, 2,8, // -
+	qfAddChar(qfl,0x2c, 2,8, // ,
 		0,
 		0,
 		0,
@@ -195,7 +231,7 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x2e, 2,8, // .
+	qfAddChar(qfl,0x2d, 2,8, // -
 		0,
 		0,
 		0,
@@ -205,7 +241,17 @@ void qfInit() {
 		0,
 		0
 	});
-	qfAddChar(qfl{0,0,0,0x2f, 2,8, // /
+	qfAddChar(qfl,0x2e, 2,8, // .
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
+	});
+	qfAddChar(qfl,0x2f, 2,8, // /
 		0,
 		0,
 		0,

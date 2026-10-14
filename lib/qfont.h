@@ -13,10 +13,12 @@
 
 typedef struct { uint8_t sizeX, sizeY, sizeID; } qfCharData;
 
-void qfSetDrawRect(const float pivotX, const float pivotY, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a));
+void qfSetDrawRect(const int8_t pivotX, const int8_t pivotY, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a));
 void qfConfigure(const float fontSize, const uint8_t style, const float r, const float g, const float b, const float a);
 qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY);
 void qfAddChar(const qfCharData charData, const int8_t* data);
+float qfDrawChar(const float posX, const float posY, const uint32_t c);
+void qfDrawText(const float posX, const float posY, const char* text);
 void qfInit();
 
 #endif
