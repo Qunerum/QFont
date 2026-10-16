@@ -34,4 +34,4 @@ void update() {
 		"{|}~");
 }
 
-int main() { return qgpuCreate(680, 720, "QFont Maker", init, update); }
+int main() { return qgpuCreate(880, 720, "QFont Maker", init, update); }
