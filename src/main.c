@@ -9,7 +9,7 @@ void init() {
 	qgSetBackground(CLR_RGB(0.05f, 0.05f, 0.08f));
 	qfSetDrawRect(0,0, draw);
 	qfInit();
-	qfConfigure(48, QFONT_REGULAR, 1, 1, 1, 1);
+	qfConfigure(48, QFONT_REGULAR, 0.97f, 0.67f, 0.82f, 1);
 }
 static uint btn = 0;
 void drawBtn(const int hw, const int hh) {
