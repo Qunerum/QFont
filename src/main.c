@@ -9,24 +9,15 @@ void init() {
 	qgSetBackground(CLR_RGB(0.05f, 0.05f, 0.08f));
 	qfSetDrawRect(0,0, draw);
 	qfInit();
-	qfConfigure(48, QFONT_REGULAR, 1, 1, 1, 1);
-}
-static uint btn = 0;
-void drawBtn(const int hw, const int hh) {
-	qgAddRect((Vector2){-hw + 75, hh - 20}, (Vector2){140, 30}, CLR_RGBA(.26f,.26f,.26f,1.0f));
-	qgAddText((Vector2){-hw + 10, hh - 10}, "Button");
+	qfWriteFile(0,"test.qf", (qfCharData){8,12},(int8_t[]){0,0,0,0x1e, 2,8, 2, 3,-2, 2, 3,-2, 2, 3,-2, 2, 3,-2, 2, 3,-2, 0, 2, 3,-2, 2, 3,-2});
+	qfReadFile("test.qf");
+	qfConfigure(32, QFONT_REGULAR, 1, 1, 1, 1);
 }
 void update() {
 	uint w = qgGetWidth(), h = qgGetHeight();
 	int hw = w / 2, hh = h / 2;
-	qgSetLayerUI(0);
-	qgAddRect((Vector2){0, hh - 40}, (Vector2){w, 80}, CLR_RGBA(.2f,.2f,.2f,1.0f));
-	btn = 0;
-	qgSetLayerUI(1);
-	drawBtn(hw,hh);
-
-	qfDrawText(-hw + 10, 0,
-		"\x1F!\"#$%&'()*+,-./\n"
+	qfDrawText(-hw + 10, hh - 10,
+		"\x1E\x1F!\"#$%&'()*+,-./\n"
 		"0123456789:;<=>?@\n"
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n"
 		"[\\]^_`\n"
@@ -34,4 +25,4 @@ void update() {
 		"{|}~");
 }
 
-int main() { return qgpuCreate(880, 720, "QFont Maker", init, update); }
+int main() { return qgpuCreate(680, 720, "QFont tests", init, update); }

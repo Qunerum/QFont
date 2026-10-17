@@ -33,7 +33,7 @@ static void* mc(void* dest, const void* src, const uint32_t n) {
 	return dest;
 }
 qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY) { return (qfCharData) { .sizeX = sizeX, .sizeY = sizeY }; }
-static int8_t** allChars = 0;
+static int8_t** allChars = 0, isFile = 0;
 static uint32_t charCount = 0, highestID = 0;
 #define u8d (uint8_t)d
 void qfAddChar(const qfCharData charData, const int8_t* d) {
@@ -64,12 +64,78 @@ void qfAddChar(const qfCharData charData, const int8_t* d) {
 	allChars[id][0] = charData.sizeX;
 	allChars[id][1] = charData.sizeY;
 	charCount++;
-	printf(QFONT_PREFIX NKO "245m%4u" NKC
-		" Added char " NKO "245m%c" NKC
-		": WH:" NKO "245m%u\033[1;38;5;245mx\033[1;38;5;245m%u" NKC
-		" ID:" NKO "245m0\033[1;38;5;245mx\033[1;38;5;245m%X" NKC
-		" LS:" NKO "245m%4u\033[1;38;5;245mB" NKC "\n",
-		charCount, id > 31 && id < 127 ? id : '?', charData.sizeX, charData.sizeY, id, size);
+	const uint8_t c = isFile ? 12 : 245;
+	printf(QFONT_PREFIX "%c" NKO "245m%4u" NKC
+		" %s " NKO "%um%c" NKC
+		": WH:" NKO "%um%ux%u" NKC
+		" ID:" NKO "%um0x%08X" NKC
+		" LS:" NKO "%um%4uB" NKC "\n",
+		isFile ? 0 : ' ', charCount, isFile ? "Readed char" : "Added char", c, (char)(id > 31 && id < 127 ? id : '?'), c, charData.sizeX, charData.sizeY, c, id, c, size);
+}
+void qfWriteFile(uint8_t add, const char* path, const qfCharData charData, const int8_t* d) {
+	if (!d) return;
+	FILE* f = fopen(path, add ? "ab" : "wb");
+	if (!f) return;
+	const uint32_t id =
+	((uint32_t)u8d[0] << 24) |
+	((uint32_t)u8d[1] << 16) |
+	((uint32_t)u8d[2] << 8)  |
+	(uint32_t)u8d[3];
+	const uint8_t goNext = u8d[5];
+	uint16_t restDataLen = 2, actualID = 6;
+	for (uint8_t i = 0; i < goNext; i++) {
+		const uint8_t len = 1 + u8d[actualID];
+		actualID += len;
+		restDataLen += len;
+	}
+	fwrite(&d[0], 1, 4, f);
+	fwrite(&charData.sizeX, 1, 1, f);
+	fwrite(&charData.sizeY, 1, 1, f);
+	fwrite(&d[4], 1, restDataLen, f);
+	fclose(f);
+	const uint16_t totalRecordSize = 4 + 2 + restDataLen;
+	printf(QFONT_PREFIX
+	"   Saved to file   " NKO "115m%c" NKC
+	": WH:" NKO "115m%ux%u" NKC
+	" ID:" NKO "115m0x%08X" NKC
+	" LS:" NKO "115m%4uB" NKC "\n",
+	(char)(id > 31 && id < 127 ? id : '?'), charData.sizeX, charData.sizeY, id, totalRecordSize);
+}
+void qfReadFile(const char* path) {
+	FILE* f = fopen(path, "rb");
+	if (!f) return;
+	isFile = 1;
+	uint32_t id = 0;
+	while (fread(&id, sizeof(uint32_t), 1, f) == 1) {
+		uint8_t sizeX = 0, sizeY = 0, startAt = 0, goNext = 0;
+		if (fread(&sizeX, 1, 1, f) != 1 ||
+			fread(&sizeY, 1, 1, f) != 1 ||
+			fread(&startAt, 1, 1, f) != 1 ||
+			fread(&goNext, 1, 1, f) != 1) break;
+		const qfCharData cd = (qfCharData){ .sizeX = sizeX, .sizeY = sizeY };
+		uint16_t size = 6;
+		for (uint8_t i = 0; i < goNext; i++) {
+			uint8_t v = 0;
+			if (fread(&v, 1, 1, f) != 1) break;
+			fseek(f, (long)v, SEEK_CUR);
+			size += (1 + v);
+		}
+		int8_t* d = (int8_t*)malloc(size);
+		if (!d) {
+			fclose(f);
+			return;
+		}
+		fseek(f, -(long)(size + 2), SEEK_CUR);
+		d[3] = (int8_t)(id >> 24);
+		d[2] = (int8_t)(id >> 16);
+		d[1] = (int8_t)(id >> 8);
+		d[0] = (int8_t)id;
+		fseek(f, 6, SEEK_CUR);
+		fread(&d[4], 1, size - 4, f);
+		qfAddChar(cd, d);
+	}
+	isFile = 0;
+	fclose(f);
 }
 float qfDrawChar(const float posX, const float posY, const uint32_t c) {
 	if (c >= highestID || !allChars[c]) return .0f;
@@ -113,6 +179,8 @@ void qfDrawText(const float posX, const float posY, const char* t) {
 #define qfl qfFont,(int8_t[]){0,0,0
 void qfInit() {
 	qfCharData qfFont = qfCreate(8, 12);
+	qfAddChar(qfl,0x7e, 0,0}); // alloc
+	charCount--;
 	qfAddChar(qfl,0x1f, 0,12, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8});
 	qfAddChar(qfl,0x20, 0,0});
 	qfAddChar(qfl,0x21, 2,8, 2, 3,-2, 2, 3,-2, 2, 3,-2, 2, 3,-2, 2, 3,-2, 0, 2, 3,-2, 2, 3,-2});
