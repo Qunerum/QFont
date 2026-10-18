@@ -1,7 +1,7 @@
 let characters = [],
 	activeCharId = null,
-	nextCharId = 1,
 	isMouseDown = false,
+	highestID = 0,
 	drawState = 1,
 	rightText = "";
 
@@ -87,11 +87,12 @@ document.getElementById('addCharBtn').addEventListener('click', () => {
 		for (let c = 0; c < cols; c++) rowArr.push(0);
 		bitMap.push(rowArr);
 	}
-	addChar(nextCharId++, cols, rows, bitMap);
+	addChar(highestID + 1, cols, rows, bitMap);
 });
 
 function selectCharacter(id) {
 	activeCharId = id;
+	highestID = characters.length > 0 ? Math.max(...characters.map(c => c.id)) : 0;
 	calculate(getActiveCharacter());
 	renderCharsList();
 	renderGrid();
