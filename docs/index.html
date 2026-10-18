@@ -30,7 +30,12 @@
                         <input type="range" id="previewZoomSlider" min="1" max="16" value="4" title="Zoom">
                     </div>
                     <div class="preview-canvas-wrapper" id="previewWrapper"><canvas id="sidebarPreviewCanvas"></canvas></div>
-                    <button id="generateBtn">Download QFont file</button>
+                    <div class="download-box" style="display: flex; gap: 5px;">
+                        <button id="generateBtn">Download QFont file</button>
+                        <button id="saveAsBtn" title="Choose path and save..." style="width: 40px; font-size: 1.1rem;">📁</button>
+                    </div>
+                    <button id="loadFileBtn">Add characters from a file</button>
+                    <input type="file" id="fileInput" accept=".qf" style="display: none;">
                 </div>
             </div>
             <div class="main-content">

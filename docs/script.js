@@ -35,6 +35,8 @@ zoomSlider.addEventListener('input', (e) => {
 const previewZoomSlider = document.getElementById('previewZoomSlider');
 	previewZoomSlider.addEventListener('input', () => { renderSidebarPreview(); });
 function getActiveCharacter() { return characters.find(c => c.id === activeCharId); }
+function characterExist(id) { return characters.some(char => char.id === id); }
+function getIndex(id) { return characters.findIndex(char => char.id === id); }
 function drawBitmapToCanvas(canvas, bitMap, rows, cols, scale = 1) {
 	const ctx = canvas.getContext('2d');
 	canvas.width = cols * scale;
@@ -60,6 +62,17 @@ function renderSidebarPreview() {
 	const scale = parseInt(previewZoomSlider.value, 10);
 	drawBitmapToCanvas(previewCanvas, activeChar.bitMap, activeChar.rows, activeChar.cols, scale);
 }
+function addChar(id, w, h, bm) {
+	const nc = {
+		id: id,
+		rows: h,
+		cols: w,
+		bitMap: bm
+	};
+	if (characterExist(id)) characters[getIndex(id)] = nc;
+	else characters.push(nc);
+	selectCharacter(id);
+}
 
 document.getElementById('addCharBtn').addEventListener('click', () => {
 	const rows = parseInt(document.getElementById('newRows').value, 10),
@@ -74,18 +87,12 @@ document.getElementById('addCharBtn').addEventListener('click', () => {
 		for (let c = 0; c < cols; c++) rowArr.push(0);
 		bitMap.push(rowArr);
 	}
-	const newChar = {
-		id: nextCharId++,
-		rows: rows,
-		cols: cols,
-		bitMap: bitMap
-	};
-	characters.push(newChar);
-	selectCharacter(newChar.id);
+	addChar(nextCharId++, cols, rows, bitMap);
 });
 
 function selectCharacter(id) {
 	activeCharId = id;
+	calculate(getActiveCharacter());
 	renderCharsList();
 	renderGrid();
 	renderSidebarPreview();
@@ -323,3 +330,88 @@ document.getElementById('generateBtn').addEventListener('click', () => {
 	const binaryData = writer.getBuffer();
 	saveAndDownload(binaryData);
 });
+document.getElementById('saveAsBtn').addEventListener('click', async () => {
+	if (characters.length == 0) {
+		alert('You must create at least one character!');
+		return;
+	}
+	const writer = new BinaryWriter();
+	characters.forEach((char) => {
+		calculate(char);
+		for (let i = 0; i < cd.length; i++) {
+			if (i < 8) writer.addUint8(cd[i]);
+			else writer.addInt8(cd[i]);
+		}
+	});
+	const binaryData = writer.getBuffer();
+	if ('showSaveFilePicker' in window) {
+		const options = {
+			suggestedName: 'font.qf',
+			types: [{
+				description: 'QFont font',
+				accept: { 'application/octet-stream': ['.qf'] },
+			}],
+		};
+		const handle = await window.showSaveFilePicker(options),
+			writable = await handle.createWritable();
+		await writable.write(binaryData);
+		await writable.close();
+	} else {
+		alert('Your browser does not support choosing a custom save path. Falling back to standard download.');
+		saveAndDownload(binaryData, 'font.qf');
+	}
+});
+
+const loadBtn = document.getElementById('loadFileBtn'),
+	fileInput = document.getElementById('fileInput');
+loadBtn.addEventListener('click', () => { fileInput.click(); });
+
+fileInput.addEventListener('change', (event) => {
+	const file = event.target.files[0];
+	if (!file) return;
+	const reader = new FileReader();
+	reader.onload = function(e) {
+		const arrayBuffer = e.target.result;
+		parseQFontFile(arrayBuffer);
+	};
+	reader.readAsArrayBuffer(file);
+	fileInput.value = '';
+});
+let offset = 0;
+function readInt(data) { return data.getInt8(offset++); }
+function readUint(data) { return data.getUint8(offset++); }
+function parseQFontFile(arrayBuffer) {
+	const d = new DataView(arrayBuffer);
+	offset = 0;
+	while (offset < d.byteLength) {
+		const id =
+			readUint(d) << 24 & 0xFF |
+			readUint(d) << 16 & 0xFF |
+			readUint(d) << 8 & 0xFF  |
+			readUint(d) & 0xFF,
+			sizeX = readUint(d),
+			sizeY = readUint(d),
+			startAt = readUint(d),
+			goNext = readUint(d);
+		let bm = [];
+		for (let i = 0; i < sizeY; i++) {
+			let z = [];
+			for (let j = 0; j < sizeX; j++) z.push(0);
+			bm.push(z);
+		}
+		for (let y = 0; y < goNext; y++) {
+			const len = readUint(d);
+			let i = 0;
+			for (let x = 0; x < len; x++) {
+				let v = readInt(d)
+				const im = v < 0;
+				if (im) v = -v;
+				for (let t = 0; t < v; t++) {
+					bm[y + startAt][i] = im ? 1 : 0;
+					i++;
+				}
+			}
+		}
+		addChar(id, sizeX, sizeY, bm)
+	}
+}
