@@ -22,6 +22,8 @@ void update() {
 		"[\\]^_`\n"
 		"abcdefghijklmnopqrstuvwxyz\n"
 		"{|}~"); // use: \33xHEXq or \33dDECIMALq for custom chars
+
+	qfDrawText(hw - 200, -hh + 32, "Hello, World!");
 }
 
 int main() { return qgpuCreate(680, 720, "QFont tests", init, update); }
