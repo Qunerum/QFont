@@ -11,11 +11,12 @@ static float
 	pivX = 0.0f, pivY = 0.0f,
 	qfSize = 32.0f,
 	qfR = 1.0f, qfG = 1.0f, qfB = 1.0f, qfA = 1.0f;
-static uint8_t qfStyle = QFONT_REGULAR;
+static uint8_t qfStyle = QFONT_REGULAR, qfAxis = QFONT_Y_UP;
 static void (*drawFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a);
-void qfSetDrawRect(const int8_t px, const int8_t py, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a)) {
+void qfSetDrawRect(const int8_t px, const int8_t py, const uint8_t ya, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a)) {
 	pivX = px <= -1 ? 0.0f : px >= 1 ? 1.0f : 0.5f;
 	pivY = py <= -1 ? 0.0f : py >= 1 ? 1.0f : 0.5f;
+	qfAxis = ya;
 	drawFunc = drawRectFunc;
 }
 void qfConfigure(const float fontSize, const uint8_t style, const float r, const float g, const float b, const float a) {
@@ -160,7 +161,9 @@ float qfDrawChar(const float posX, const float posY, const uint32_t c) {
 				draw = dil < 0,
 				rv = draw ? -dil : dil,
 				v = rv > w ? w : rv;
-			if (draw) drawFunc(posX + (x + v * pivX) * sc, posY - (y + pivY) * sc, v * sc, sc, qfR,qfG,qfB,qfA);
+			const float pyt = (y + pivY) * sc,
+						py = qfAxis ? posY + pyt : posY - pyt;
+			if (draw) drawFunc(posX + (x + v * pivX) * sc, py, v * sc, sc, qfR,qfG,qfB,qfA);
 			x += v;
 		}
 		i += len;
@@ -169,12 +172,49 @@ float qfDrawChar(const float posX, const float posY, const uint32_t c) {
 	}
 	return w * sc;
 }
+static uint8_t tmpi = 0;
+static char tmp[11];
 void qfDrawText(const float posX, const float posY, const char* t) {
 	float x = posX, y = posY;
 	while (*t) {
 		if (*t == '\n') {
 			x = posX;
 			y -= qfSize;
+			t++;
+			continue;
+		}
+		if (*t == '\33') {
+			t++;
+			const uint8_t type = *t == 'd' ? 1 : *t == 'x' ? 2 : 0;
+			if (!type || !*t) continue;
+			tmpi = 0;
+			tmp[0] = 0;
+			for (uint8_t i = 0; i < sizeof(tmp) - 1; i++) {
+				t++;
+				if (!*t) return;
+				if (*t != 'q') tmp[tmpi++] = *t; else break;
+			}
+			uint32_t res = 0;
+			uint8_t i = 0;
+			if (type == 1) {
+				while (tmp[i] >= '0' && tmp[i] <= '9') {
+					res = res * 10 + tmp[i] - '0';
+					i++;
+				}
+			} else {
+				for (i = 0; i < tmpi; i++) if (tmp[i] >= 'A' && tmp[i] <= 'F') tmp[i] += 32;
+				i = 0;
+				while (i < tmpi) {
+					const char c = tmp[i];
+					uint32_t val = 0;
+					if (c >= '0' && c <= '9') val = c - '0';
+					else if (c >= 'a' && c <= 'f') val = c - 'a' + 10;
+					else break;
+					res = (res << 4) | val;
+					i++;
+				}
+			}
+			x += qfDrawChar(x, y, res);
 			t++;
 			continue;
 		}

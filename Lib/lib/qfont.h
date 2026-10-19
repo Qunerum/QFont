@@ -11,9 +11,12 @@
 #define QFONT_UPPERCASE     0b00100000
 #define QFONT_LOWERCASE     0b01000000
 
+#define QFONT_Y_UP 0
+#define QFONT_Y_DOWN 1
+
 typedef struct { uint8_t sizeX, sizeY; } qfCharData;
 
-void qfSetDrawRect(const int8_t pivotX, const int8_t pivotY, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a));
+void qfSetDrawRect(const int8_t pivotX, const int8_t pivotY, const uint8_t yAxis, void (*drawRectFunc)(const float posX, const float posY, const float sizeX, const float sizeY, const float r, const float g, const float b, const float a));
 void qfConfigure(const float fontSize, const uint8_t style, const float r, const float g, const float b, const float a);
 qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY);
 void qfAddChar(const qfCharData charData, const int8_t* data);
