@@ -262,13 +262,25 @@ void qgLog(const char* format, ...) {
 }
 void qgLogVertices() {
 	if (!_showLogs) return;
-	const float p = ((float)g_ctx.currentVOffset / MAX_VERTICES) * 100.0f;
-	if (p > 95) qgPrintc(LIGHT_RED, "%i/%i (%.0f%%)\n", g_ctx.currentVOffset, MAX_VERTICES, p);
-	else if (p > 75) qgPrintc(RED, "%i/%i (%.0f%%)\n", g_ctx.currentVOffset, MAX_VERTICES, p);
-	else if (p > 50) qgPrintc(ORANGE, "%i/%i (%.0f%%)\n", g_ctx.currentVOffset, MAX_VERTICES, p);
-	else if (p > 25) qgPrintc(YELLOW, "%i/%i (%.0f%%)\n", g_ctx.currentVOffset, MAX_VERTICES, p);
-	else if (p > 10) qgPrintc(DARK_YELLOW, "%i/%i (%.0f%%)\n", g_ctx.currentVOffset, MAX_VERTICES, p);
-	else qgPrintc(GREEN, "%i/%i (%.0f%%)\n", g_ctx.currentVOffset, MAX_VERTICES, p);
+	const float p = ((float)g_ctx.currentVOffset / MAX_VERTICES) * 100.0f,
+				p2 = ((float)g_ctx.currentUIVOffset / MAX_UI_VERTICES) * 100.0f;
+	uint8_t clr = 0;
+	if (p > 95) clr = LIGHT_RED;
+	else if (p > 75) clr = RED;
+	else if (p > 50) clr = ORANGE;
+	else if (p > 25) clr = YELLOW;
+	else if (p > 10) clr = DARK_YELLOW;
+	else clr = GREEN;
+	qgPrint("3D: ");
+	qgPrintc(clr, "%u/%u (%.0f%%)", g_ctx.currentVOffset, MAX_VERTICES, p);
+	if (p2 > 95) clr = LIGHT_RED;
+	else if (p2 > 75) clr = RED;
+	else if (p2 > 50) clr = ORANGE;
+	else if (p2 > 25) clr = YELLOW;
+	else if (p2 > 10) clr = DARK_YELLOW;
+	else clr = GREEN;
+	qgPrint(" 2D: ");
+	qgPrintc(clr, "%u/%u (%.0f%%)\n", g_ctx.currentUIVOffset, MAX_UI_VERTICES, p2);
 }
 void qgWarn(const char* format, ...) {
 	va_list args;
@@ -1064,9 +1076,7 @@ int qgpuCreate(const uint width, const uint height, const char* title, void (*in
 		if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR || acquireResult == VK_SUBOPTIMAL_KHR || framebufferResized) { framebufferResized = 0; recreateSwapchain(); continue; }
 		else if (acquireResult != VK_SUCCESS) qgError("Failed to acquire swap chain image!\n");
 
-		g_ctx.currentVOffset = 0;
 		g_ctx.currentIOffset = 0;
-		g_ctx.currentUIVOffset = 0;
 		g_ctx.currentUIIOffset = 0;
 		uiTriangleCount = 0;
 		currentUILayer = 0;
@@ -1078,6 +1088,8 @@ int qgpuCreate(const uint width, const uint height, const char* title, void (*in
 		vkBeginCommandBuffer(g_ctx.currentCmd, &beginInfo);
 
 		if (updateFunc) updateFunc();
+		g_ctx.currentVOffset = 0;
+		g_ctx.currentUIVOffset = 0;
 
 		if (uiTriangleCount > 0) {
 			qsort(uiTriangles, uiTriangleCount, sizeof(UITriangle2D), compareUITriangle);

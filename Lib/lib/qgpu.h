@@ -4,7 +4,7 @@
 // !===== CONFIGURATION ==================================================================================================================================================!
 #define MAX_VERTICES     65536 // (2^16) Max vertices in one frame
 #define MAX_LIGHTS       1024  // (2^10) Max lights in one frame
-#define MAX_UI_VERTICES  8192  // Max 2D/UI vertices in one frame
+#define MAX_UI_VERTICES  32768  // Max 2D/UI vertices in one frame
 #define VSYNC            1
 #define SHADOW_MAP_SIZE  4096  // resolution of the (single) shadow depth map
 // !===== Structs ========================================================================================================================================================!

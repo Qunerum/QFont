@@ -10,11 +10,12 @@ void init() {
 	qfSetDrawRect(0,0, QFONT_Y_UP, draw);
 	qfInit();
 	qfReadFile("font.qf");
-	qfConfigure(32, QFONT_REGULAR, 1, 1, 1, 1);
 }
+const float size = 32;
 void update() {
 	uint w = qgGetWidth(), h = qgGetHeight();
 	int hw = w / 2, hh = h / 2;
+	qfConfigure(size, QFONT_REGULAR, 1, 1, 1, 1);
 	qfDrawText(-hw + 10, hh - 10,
 		"\x1F!\"#$%&'()*+,-./\n"
 		"0123456789:;<=>?@\n"
@@ -22,10 +23,22 @@ void update() {
 		"[\\]^_`\n"
 		"abcdefghijklmnopqrstuvwxyz\n"
 		"{|}~"); // use: \33xHEXq or \33dDECIMALq for custom chars
-
-	qfDrawText(hw - 200, -hh + 32, "Hello, World!");
+	float y = 36 * 7;
+	qfConfigure(size, QFONT_REGULAR, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + y, "Regular:       Hello!");
+	qfConfigure(size, QFONT_BOLD, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + (y -= 36), "Bold:          Hello!");
+	qfConfigure(size, QFONT_ITALIC, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + (y -= 36), "Italic:        Hello!");
+	qfConfigure(size, QFONT_UNDERLINE, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + (y -= 36), "Underline:     Hello!");
+	qfConfigure(size, QFONT_STRIKETHROUGH, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + (y -= 36), "Strikethrough: Hello!");
+	qfConfigure(size, QFONT_UPPERCASE, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + (y -= 36), "Uppercase:     Hello!");
+	qfConfigure(size, QFONT_LOWERCASE, 1, 1, 1, 1);
+	qfDrawText(-hw + 10, -hh + (y -= 36), "Lowercase:     Hello!");
 }
 
 int main() { return qgpuCreate(680, 720, "QFont tests", init, update); }
-
 

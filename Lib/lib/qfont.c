@@ -145,32 +145,42 @@ void qfReadFile(const char* path) {
 }
 float qfDrawChar(const float posX, const float posY, const uint32_t c) {
 	if (c >= highestID || !allChars[c]) return .0f;
-	const int8_t* d = allChars[c];
+	const uint32_t cr =
+		((qfStyle & QFONT_UPPERCASE) && c >= 'a' && c <= 'z') ? c - 32 :
+		((qfStyle & QFONT_LOWERCASE) && c >= 'A' && c <= 'Z') ? c + 32 : c;
+	const int8_t* d = allChars[cr];
 	const uint8_t
 		w = u8d[0], h = u8d[1],
 		s = u8d[2], rn = u8d[3],
-		n = s + rn > h ? h - s : rn;
+		n = s + rn > h ? h - s : rn,
+		fw = (qfStyle & QFONT_BOLD) ? w + 1 : w;
 	if (s >= h) return .0f;
 	uint8_t x = 0, y = s, i = 4;
 	const float sc = qfSize / h;
 	for (uint8_t r = 0; r < n; r++) {
 		const uint8_t len = u8d[i] + 1;
+		const float st = (qfStyle & QFONT_ITALIC) ? -(y / (float)h) * 3.0f : 0.0f;
 		for (uint8_t l = 1; l < len; l++) {
 			const int8_t dil = d[i + l];
 			const uint8_t
 				draw = dil < 0,
 				rv = draw ? -dil : dil,
-				v = rv > w ? w : rv;
-			const float pyt = (y + pivY) * sc,
-						py = qfAxis ? posY + pyt : posY - pyt;
-			if (draw) drawFunc(posX + (x + v * pivX) * sc, py, v * sc, sc, qfR,qfG,qfB,qfA);
+				v = rv > w ? w : rv,
+				dv = (qfStyle & QFONT_BOLD) && draw ? v + 1 : v;
+			const float
+				px = qfAxis ? (x + v * pivX - st) : (x + v * pivX + st),
+				pyt = (y + pivY) * sc,
+				py = qfAxis ? posY + pyt : posY - pyt;
+			if (draw) drawFunc(posX + px * sc, py, dv * sc, sc, qfR,qfG,qfB,qfA);
 			x += v;
 		}
 		i += len;
 		x = 0;
 		y++;
 	}
-	return w * sc;
+	if (qfStyle & QFONT_UNDERLINE) drawFunc(posX + (fw * sc * 0.5f), posY - qfSize, fw * sc, sc, qfR,qfG,qfB,qfA);
+	if (qfStyle & QFONT_STRIKETHROUGH) drawFunc(posX + (fw * sc * 0.5f), posY - qfSize * 0.5f, fw * sc, sc, qfR,qfG,qfB,qfA);
+	return fw * sc;
 }
 static uint8_t tmpi = 0;
 static char tmp[11];
