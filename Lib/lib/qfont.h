@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2026 Qunerum
+ *
+ * This file is part of QFont.
+ * This software is licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #ifndef QUNERUM_QFONT_H
 #define QUNERUM_QFONT_H
 

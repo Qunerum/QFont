@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2026 Qunerum
+ *
+ * This file is part of QFont.
+ * This software is licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -78,10 +86,10 @@ void qfWriteFile(const uint8_t add, const char* path, const qfCharData charData,
 	FILE* f = fopen(path, add ? "ab" : "wb");
 	if (!f) return;
 	const uint32_t id =
-	(((uint32_t)u8d[0] << 24)) |
-	(((uint32_t)u8d[1] << 16)) |
-	(((uint32_t)u8d[2] << 8))  |
-	((uint32_t)u8d[3]);
+		((uint32_t)u8d[0] << 24) |
+		((uint32_t)u8d[1] << 16) |
+		((uint32_t)u8d[2] << 8)  |
+		 (uint32_t)u8d[3];
 	const uint8_t startAt = u8d[4], goNext = u8d[5];
 	uint16_t l = 0, actualID = 6;
 	for (uint8_t i = 0; i < goNext; i++) {
@@ -109,7 +117,10 @@ void qfWriteFile(const uint8_t add, const char* path, const qfCharData charData,
 }
 void qfReadFile(const char* path) {
 	FILE* f = fopen(path, "rb");
-	if (!f) return;
+	if (!f) {
+		printf(QFONT_PREFIX " \033[1;38;5;220mThe file '%s' does not exist.\n", path);
+		return;
+	}
 	isFile = 1;
 	uint32_t id = 0;
 	while (fread(&id, sizeof(uint32_t), 1, f) == 1) {
