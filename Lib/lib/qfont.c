@@ -42,7 +42,7 @@ static void* mc(void* dest, const void* src, const uint32_t n) {
 	return dest;
 }
 qfCharData qfCreate(const uint8_t sizeX, const uint8_t sizeY) { return (qfCharData) { .sizeX = sizeX, .sizeY = sizeY }; }
-static int8_t** allChars = 0, isFile = 0;
+static int8_t **allChars = 0, isFile = 0;
 static uint32_t charCount = 0, highestID = 0;
 #define u8d (uint8_t)d
 void qfAddChar(const qfCharData charData, const int8_t* d) {
@@ -79,7 +79,11 @@ void qfAddChar(const qfCharData charData, const int8_t* d) {
 		": WH:" NKO "%um%ux%u" NKC
 		" ID:" NKO "%um0x%08X" NKC
 		" LS:" NKO "%um%4uB" NKC "\n",
-		isFile ? 0 : ' ', charCount, isFile ? "Readed char" : "Added char", c, (char)(id > 31 && id < 127 ? id : '?'), c, charData.sizeX, charData.sizeY, c, id, c, size);
+		isFile?0:' ',   charCount,
+		isFile?"Readed char":"Added char",   c,   (char)(id>31&&id<127?id:'?'),
+		c,    charData.sizeX,    charData.sizeY,
+		c,   id,
+		c,   size);
 }
 void qfWriteFile(const uint8_t add, const char* path, const qfCharData charData, const int8_t* d) {
 	if (!d) return;
@@ -109,11 +113,14 @@ void qfWriteFile(const uint8_t add, const char* path, const qfCharData charData,
 	fclose(f);
 	const uint16_t totalRecordSize = 6 + l;
 	printf(QFONT_PREFIX
-	"   Saved to file   " NKO "115m%c" NKC
-	": WH:" NKO "115m%ux%u" NKC
-	" ID:" NKO "115m0x%08X" NKC
-	" LS:" NKO "115m%4uB" NKC "\n",
-	(char)(id > 31 && id < 127 ? id : '?'), charData.sizeX, charData.sizeY, id, totalRecordSize);
+		"   Saved to file   " NKO "115m%c" NKC
+		": WH:" NKO "115m%ux%u" NKC
+		" ID:" NKO "115m0x%08X" NKC
+		" LS:" NKO "115m%4uB" NKC "\n",
+		(char)(id>31&&id<127?id:'?'),
+		charData.sizeX,   charData.sizeY,
+		id,
+		totalRecordSize);
 }
 void qfReadFile(const char* path) {
 	FILE* f = fopen(path, "rb");
@@ -244,7 +251,7 @@ void qfDrawText(const float posX, const float posY, const char* t) {
 }
 #define qfl qfFont,(int8_t[]){0,0,0
 void qfInit() {
-	qfCharData qfFont = qfCreate(8, 12);
+	const qfCharData qfFont = qfCreate(8, 12);
 	qfAddChar(qfl,0x7e, 0,0}); // alloc
 	charCount--;
 	qfAddChar(qfl,0x1f, 0,12, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8, 1, -8});
