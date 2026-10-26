@@ -351,3 +351,9 @@ void qfInit() {
 	qfAddChar(qfl,0x7d, 2,8, 2, 2,-1, 2, 3,-1, 2, 3,-1, 2, 3,-2, 2, 3,-2, 2, 3,-1, 2, 3,-1, 2, 2,-1});
 	qfAddChar(qfl,0x7e, 5,2, 4, 2,-2,2,-1, 4, 1,-1,2,-2});
 }
+void qfEnd() {
+	if (!allChars) return;
+	for (uint32_t i = 0; i < charCount; i++) free(allChars[i]);
+	free(allChars);
+	printf(QFONT_PREFIX "\033[1;38;5;251m All characters have been released from memory\033[0m\n");
+}

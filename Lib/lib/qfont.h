@@ -33,5 +33,6 @@ void qfReadFile(const char* path);
 float qfDrawChar(const float posX, const float posY, const uint32_t c);
 void qfDrawText(const float posX, const float posY, const char* text);
 void qfInit();
+void qfEnd();
 
 #endif

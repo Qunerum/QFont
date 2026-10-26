@@ -40,5 +40,9 @@ void update() {
 	qfDrawText(-hw + 10, -hh + (y -= 36), "Lowercase:     Hello!");
 }
 
-int main() { return qgpuCreate(680, 720, "QFont tests", init, update); }
+int main() {
+	int qgpu =  qgpuCreate(680, 720, "QFont tests", init, update);
+	qfEnd();
+	return qgpu;
+}
 
